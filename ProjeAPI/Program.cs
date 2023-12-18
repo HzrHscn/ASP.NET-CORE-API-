@@ -1,56 +1,29 @@
-using BusinessLayer.Abstract;
-using BusinessLayer.Concrete;
-using DataAccessLayer.Abstract;
-using DataAccessLayer.Concrete;
-using DataAccessLayer.EntityFramework;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<Context>();
-builder.Services.AddScoped<IProductDal, EfProductDal>();
-builder.Services.AddScoped<IProductService, ProductManager>();
+builder.Services.AddControllersWithViews();
 
-builder.Services.AddScoped<IPersonelDal, EfPersonelDal>();
-builder.Services.AddScoped<IPersonelService, PersonelManager>();
-
-builder.Services.AddScoped<IAssignmentDal, EfAssignmentDal>();
-builder.Services.AddScoped<IAssignmentService, AssignmentManager>();
-
-builder.Services.AddScoped<IRepairRequestDal, EfRepairRequestDal>();
-builder.Services.AddScoped<IRepairRequestService, RepairRequestManager>();
-
-builder.Services.AddCors(opt =>
-{
-    opt.AddPolicy("EnvanterApiCors", builder =>
-    {
-        builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-    });
-});
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
 }
 
-
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 
-app.UseCors("EnvanterApiCors");
+app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

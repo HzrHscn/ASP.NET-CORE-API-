@@ -1,0 +1,42 @@
+﻿@using ProjeUI.Models.Assignment
+@model List<AssignmentViewModel>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/AdminLayout/_AdminLayout.cshtml";
+}
+
+<h1>Assignment Ekranı</h1>
+
+<table class="table table-bordered">
+    <tr>
+        <th>#</th>
+        <th>Ürün ID</th>
+        <th>Personel ID</th>
+        <th>Tarih</th>
+        <th>Geri Geldi mi?</th>
+        <th>Ürün Adı</th>
+        <th>Ürün Barkod</th>
+        <th>Personel Adı</th>
+        <th>Sil</th>
+        <th>Güncelle</th>
+        <th>Detaylar</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.AssignmentId</td>
+            <td>@item.productID</td>
+            <td>@item.personelID</td>
+            <td>@item.AssignmentDate</td>
+            <td>@item.isReturned</td>
+            <td>@item.Product.Name</td>
+            <td>@item.Product.Barcode</td>
+            <td>@item.Personel.NameSurname</td>
+            <td><a href="/Personel/Delete/@item.AssignmentId" class="btn btn-danger">Sil</a></td>
+            <td><a href="/Personel/Edit/@item.AssignmentId" class="btn btn-warning">Güncelle</a></td>
+            <td><a href="#" class="btn btn-dark">Detaylar</a></td>
+        </tr>
+    }
+</table>
+<a href="/Personel/Create" class="btn btn-success">Yeni Atama Ekle</a>
+

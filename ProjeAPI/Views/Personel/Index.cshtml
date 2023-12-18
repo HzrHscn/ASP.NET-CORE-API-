@@ -1,0 +1,39 @@
+﻿@using ProjeUI.Models.Personel
+@model List<PersonelViewModel>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/AdminLayout/_AdminLayout.cshtml";
+}
+
+<h1>Personel Ekranı</h1>
+
+<table class="table table-bordered">
+    <tr>
+        <th>#</th>
+        <th>Ad Soyad</th>
+        <th>Mail</th>
+        <th>Adres</th>
+        <th>Departman</th>
+        <th>Rol</th>
+        <th>Status</th>
+        <th>Sil</th>
+        <th>Güncelle</th>
+        <th>Detaylar</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.ID</td>
+            <td>@item.NameSurname</td>
+            <td>@item.Mail</td>
+            <td>@item.Address</td>
+            <td>@item.Departman</td>
+            <td>@item.Rol</td>
+            <td>@item.Status</td>
+            <td><a href="/Personel/Delete/@item.ID" class="btn btn-danger">Sil</a></td>
+            <td><a href="/Personel/Edit/@item.ID" class="btn btn-warning">Güncelle</a></td>
+            <td><a href="#" class="btn btn-dark">Detaylar</a></td>
+        </tr>
+    }
+</table>
+<a href="/Personel/Create" class="btn btn-success">Yeni Personel Ekle</a>

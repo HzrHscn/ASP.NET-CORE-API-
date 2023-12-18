@@ -1,0 +1,42 @@
+﻿@using ProjeUI.Models.Product
+@model List<ProductViewModel>
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/AdminLayout/_AdminLayout.cshtml";
+}
+
+<table class="table table-bordered">
+    <tr>
+        <th>#</th>
+        <th>Ürün ad</th>
+        <th>Kategori</th>
+        <th>Marka</th>
+        <th>Adet</th>
+        <th>Açıklama</th>
+        <th>Barkod</th>
+        <th>Resim</th>
+        <th>Status</th>
+        <th>Sil</th>
+        <th>Güncelle</th>
+        <th>Detaylar</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.ID</td>
+            <td>@item.Name</td>
+            <td>@item.Category</td>
+            <td>@item.Brand</td>
+            <td>@item.Quantity</td>
+            <td>@item.Description</td>
+            <td>@item.Barcode</td>
+            <td>@item.ImgUrl</td>
+            <td>@item.Status</td>
+            <td><a href="/Product/Delete/@item.ID" class="btn btn-danger">Sil</a></td>
+            <td><a href="/Product/Edit/@item.ID" class="btn btn-warning">Güncelle</a></td>
+            <td><a href="#" class="btn btn-dark">Detaylar</a></td>
+        </tr>
+    }
+</table>
+<a href="/Product/Create" class="btn btn-success">Yeni Ürün Ekle</a>
+

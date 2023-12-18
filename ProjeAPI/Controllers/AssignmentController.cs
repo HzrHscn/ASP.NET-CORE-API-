@@ -1,51 +1,47 @@
-﻿using BusinessLayer.Abstract;
-using EntityLayer.Concrete;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using ProjeUI.Models.Assignment;
+using ProjeUI.Models.Personel;
+using ProjeUI.Models.Product;
 
-namespace ProjeAPI.Controllers
+namespace ProjeUI.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class AssignmentController : ControllerBase
+    public class AssignmentController : Controller
     {
-        private readonly IAssignmentService _assignmentService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public AssignmentController(IAssignmentService assignmentService)
+        public AssignmentController(IHttpClientFactory httpClientFactory)
         {
-            _assignmentService = assignmentService;
+            _httpClientFactory = httpClientFactory;
+        }
+        //ASSIGNMENT LİSTELEME ama producttan name ve barcode çekiyor personelden de name çekiyor 
+        public async Task<IActionResult> Index()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var responseMessage = await client.GetAsync("https://localhost:7273/api/Assignment");
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var jsondata = await responseMessage.Content.ReadAsStringAsync();
+                var assignments = JsonConvert.DeserializeObject<List<AssignmentViewModel>>(jsondata);
+
+                foreach (var assignment in assignments)
+                {
+                    // Her bir Assignment için ayrı API çağrısı yaparak Product ve Personel bilgilerini al
+                    var productResponse = await client.GetAsync($"https://localhost:7273/api/Product/{assignment.productID}");
+                    var productJsonData = await productResponse.Content.ReadAsStringAsync();
+                    assignment.Product = JsonConvert.DeserializeObject<ProductViewModel>(productJsonData);
+
+                    var personelResponse = await client.GetAsync($"https://localhost:7273/api/Personel/{assignment.personelID}");
+                    var personelJsonData = await personelResponse.Content.ReadAsStringAsync();
+                    assignment.Personel = JsonConvert.DeserializeObject<PersonelViewModel>(personelJsonData);
+                }
+
+                return View(assignments);
+            }
+
+            return View();
         }
 
-        [HttpGet]
-        public IActionResult AssignmentList()
-        {
-            var values = _assignmentService.TGetList();
-            return Ok(values);
-        }
-        [HttpPost]
-        public IActionResult AddAssignment(Assignment assignment)
-        {
-            _assignmentService.TInsert(assignment);
-            return Ok("Görev eklendi.");
-        }
-        [HttpDelete]
-        public IActionResult DeleteAssignment(int id)
-        {
-            var values = _assignmentService.TGetById(id);
-            _assignmentService.TDelete(values);
-            return Ok("Görev silindi.");
-        }
-        [HttpPut]
-        public IActionResult UpdateAssignment(Assignment assignment)
-        {
-            _assignmentService.TUpdate(assignment);
-            return Ok("Görev güncellendi.");
-        }
-        [HttpGet("{id}")]
-        public IActionResult GetAssignmentById(int id)
-        {
-            var values = _assignmentService.TGetById(id);
-            return Ok(values);
-        }
+        //ASSIGNMENT EKLEME
     }
 }

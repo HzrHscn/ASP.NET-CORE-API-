@@ -1,51 +1,125 @@
-﻿using BusinessLayer.Abstract;
-using EntityLayer.Concrete;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using ProjeUI.Models.Personel;
+using System.Net.Http;
+using System.Text;
 
-namespace ProjeAPI.Controllers
+namespace ProjeUI.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PersonelController : ControllerBase
+    public class PersonelController : Controller
     {
-        private readonly IPersonelService _personelService;
+        private readonly IHttpClientFactory _httpClientFactory;
 
-        public PersonelController(IPersonelService personelService)
+        public PersonelController(IHttpClientFactory httpClientFactory)
         {
-            _personelService = personelService;
+            _httpClientFactory = httpClientFactory;
+        }
+        //PERSONEL LİSTELEME
+        public async Task<IActionResult> Index()
+        {
+            var client = _httpClientFactory.CreateClient();
+            var responseMessage = await client.GetAsync("https://localhost:7273/api/Personel");
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var jsondata = await responseMessage.Content.ReadAsStringAsync();
+                var values = JsonConvert.DeserializeObject<List<PersonelViewModel>>(jsondata);
+                return View(values);
+            }
+            return View();
+        }
+        //PERSONEL EKLEME
+        public async Task<IActionResult> Create(PersonelViewModel personelViewModel)
+        {
+            try
+            {
+                // Null kontrolü
+                if (personelViewModel == null)
+                {
+                    return BadRequest("Invalid input");
+                }
+
+                var client = _httpClientFactory.CreateClient();
+                var json = JsonConvert.SerializeObject(personelViewModel);
+                var stringContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var responseMessage = await client.PostAsync("https://localhost:7273/api/Personel", stringContent);
+
+                // HttpResponseMessage kontrolü
+                if (responseMessage == null)
+                {
+                    return BadRequest("API request failed");
+                }
+
+                // StatusCode kontrolü
+                if (responseMessage.IsSuccessStatusCode)
+                {
+                    return RedirectToAction("Index");
+                }
+                else
+                {
+                    // Hata durumunu işle
+                    var errorMessage = await responseMessage.Content.ReadAsStringAsync();
+                    ViewBag.ErrorMessage = errorMessage;
+                    return View();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Diğer hata durumları için genel bir hata mesajı
+                ViewBag.ErrorMessage = "An error occurred while processing your request." + ex;
+                return View();
+            }
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var client = _httpClientFactory.CreateClient();
+            var responseMessage = await client.DeleteAsync($"https://localhost:7273/api/Personel/{id}");
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                // Hata durumunu işle
+                var errorMessage = await responseMessage.Content.ReadAsStringAsync();
+                ViewBag.ErrorMessage = errorMessage;
+                return View();
+            }
         }
 
         [HttpGet]
-        public IActionResult PersonelList()
+        public async Task<IActionResult> Edit(int id)
         {
-            var values = _personelService.TGetList();
-            return Ok(values);
+            var client = _httpClientFactory.CreateClient();
+            var responseMessage = await client.GetAsync($"https://localhost:7273/api/Personel/{id}");
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var jsondata = await responseMessage.Content.ReadAsStringAsync();
+                var values = JsonConvert.DeserializeObject<PersonelViewModel>(jsondata);
+                return View(values);
+            }
+            return View();
         }
+
         [HttpPost]
-        public IActionResult AddPersonel(Personel personel)
+        public async Task<IActionResult> Edit(PersonelViewModel personelViewModel)
         {
-            _personelService.TInsert(personel);
-            return Ok("Personel eklendi.");
-        }
-        [HttpDelete("{id}")]
-        public IActionResult DeletePersonel(int id)
-        {
-            var values = _personelService.TGetById(id);
-            _personelService.TDelete(values);
-            return Ok("Personel silindi.");
-        }
-        [HttpPut]
-        public IActionResult UpdatePersonel(Personel personel)
-        {
-            _personelService.TUpdate(personel);
-            return Ok("Personel güncellendi.");
-        }
-        [HttpGet("{id}")]
-        public IActionResult GetPersonelById(int id)
-        {
-            var values = _personelService.TGetById(id);
-            return Ok(values);
+            var client = _httpClientFactory.CreateClient();
+            var jsondata = JsonConvert.SerializeObject(personelViewModel);
+            StringContent stringContent = new StringContent(jsondata, Encoding.UTF8, "application/json");
+            var responseMessage = await client.PutAsync("https://localhost:7273/api/Personel", stringContent);
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                // Hata durumunu işle
+                var errorMessage = await responseMessage.Content.ReadAsStringAsync();
+                ViewBag.ErrorMessage = errorMessage;
+                return View();
+            }
         }
     }
 }
